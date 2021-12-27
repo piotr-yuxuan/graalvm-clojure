@@ -1,0 +1,98 @@
+# Beware: a job matrix can generate a maximum of 256 jobs per workflow
+# run. This limit also applies to self-hosted runners.
+#
+#  – Documentation: https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#jobsjob_idstrategymatrix
+name: Build native
+'on':
+  push:
+    branches: [ '*' ]
+defaults:
+  run:
+    shell: bash
+    working-directory: .github
+jobs:
+  build-native:
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        clojure: [
+            1.9.0,
+            1.10.3,
+            1.11.0-alpha3
+        ]
+        leiningen: [
+            latest
+        ]
+        java: [
+            8,
+            11,
+            16,
+        ]
+        graalvm: [
+            19.3.2,
+            20.3.2,
+            21.2.0,
+        ]
+        os: [
+            ubuntu-latest,
+            macOS-latest,
+            windows-latest
+        ]
+    runs-on: ${{ matrix.os }}
+    env:
+      CLOJURE_VERSION: ${{ matrix.clojure }}
+    steps:
+      - uses: actions/checkout@main
+      - uses: ayltai/setup-graalvm@v1
+        with:
+          java-version: ${{ matrix.java }}
+          graalvm-version: ${{ matrix.graalvm }}
+          native-image: true
+      - uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-nvd-${{ hashFiles('**/project.clj') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-nvd-
+      - uses: DeLaGuardo/setup-clojure@master
+        with:
+          lein: ${{ matrix.leiningen }}
+      - run: sh ./build.sh aws-api-s3
+      - run: sh ./build.sh datascript
+      - run: sh ./build.sh clj-sophia
+      - run: sh ./build.sh cli4clj
+      - run: sh ./build.sh amazonica-s3
+      - run: sh ./build.sh clojure
+      - run: sh ./build.sh clostache
+      - run: sh ./build.sh clj-http-lite
+      - run: sh ./build.sh carmine
+      - run: sh ./build.sh cljfmt
+      - run: sh ./build.sh clara-rules
+      - run: sh ./build.sh next-jdbc
+      - run: sh ./build.sh tools-logging-log4j
+      - run: sh ./build.sh spec
+      - run: sh ./build.sh component
+      - run: sh ./build.sh mulog
+      - run: sh ./build.sh integrant
+      - run: sh ./build.sh lacinia
+      - run: sh ./build.sh tools-logging
+      - run: sh ./build.sh ring-jetty
+      - run: sh ./build.sh sample-project
+      - run: sh ./build.sh system
+      - run: sh ./build.sh cprop
+      - run: sh ./build.sh nippy
+      - run: sh ./build.sh fire
+      - run: sh ./build.sh timbre
+      - run: sh ./build.sh http-kit
+      - run: sh ./build.sh aleph
+      - run: sh ./build.sh safely
+      - run: sh ./build.sh monger
+      - run: sh ./build.sh secure-random
+      - run: sh ./build.sh cheshire
+      - run: sh ./build.sh fastmath
+      - run: sh ./build.sh selmer
+      - run: sh ./build.sh hiccup
+      - run: sh ./build.sh asami
+      - run: sh ./build.sh loom
+      - run: sh ./build.sh clj-uuid
