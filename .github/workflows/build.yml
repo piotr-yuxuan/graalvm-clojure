@@ -42,6 +42,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       CLOJURE_VERSION: ${{ matrix.clojure }}
+      JAVA_VERSION: ${{ matrix.java }}
+      GRAALVM_VERSION: ${{ matrix.graalvm }}
+      LEININGEN_VERSION: ${{ matrix.leiningen }}
+      OS_VERSION: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@main
       - uses: ayltai/setup-graalvm@v1
@@ -96,3 +100,13 @@ jobs:
       - run: sh ./build.sh asami
       - run: sh ./build.sh loom
       - run: sh ./build.sh clj-uuid
+      # Insert your new project above this line, or refactor build.sh to scan projects FIXME.
+      - run: sh ./matrix-aggregate-report.sh
+  report:
+    runs-on: ubuntu-latest
+    needs: build-native
+    steps:
+      - run: sh ./job-report.sh
+      - uses: EndBug/add-and-commit@v7
+        with:
+          add: 'builds.csv'
